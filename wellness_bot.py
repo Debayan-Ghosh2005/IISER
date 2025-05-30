@@ -1,7 +1,7 @@
 import google.generativeai as genai
 
 # Set your API key
-genai.configure(api_key="AIzaSyDUbN9YwXCmuG2JgHE6CXHmlzIWqb1cOJ8")
+genai.configure(api_key="*******************************")
 
 def AI(query):
     try:
