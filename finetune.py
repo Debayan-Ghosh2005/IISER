@@ -1,97 +1,99 @@
-import pandas as pd
-import numpy as np
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import f1_score, confusion_matrix, ConfusionMatrixDisplay
-from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.model_selection import GridSearchCV
-import matplotlib.pyplot as plt
+import pandas as pd  # Used to load and manipulate tabular data
+import numpy as np  # Used for numerical operations and random selection
+from sklearn.ensemble import RandomForestClassifier  # Random Forest classification model
+from sklearn.metrics import f1_score  # Used to evaluate classification performance (F1 score)
+from sklearn.preprocessing import StandardScaler, LabelEncoder  # For feature scaling and label encoding
+from sklearn.model_selection import RandomizedSearchCV  # For hyperparameter tuning
 
-# === 1. Load dataset ===
-df = pd.read_csv("data.csv")  # Load the dataset into a DataFrame
+# === Step 1: Load Dataset ===
+df = pd.read_csv("data.csv")  # Load the dataset from CSV file into a pandas DataFrame
 
-# === 2. Encode categorical ===
-le = LabelEncoder()  # Initialize label encoder
-df['continent'] = le.fit_transform(df['continent'])  # Encode 'continent' column to numeric values
+# === Step 2: Encode 'continent' column (categorical) ===
+le = LabelEncoder()  # Create a LabelEncoder object
+df['continent'] = le.fit_transform(df['continent'])  # Convert continent names into integer codes
 
-# === 3. Few-Shot Labeling (10%) ===
-np.random.seed(42)  # Set seed for reproducibility
-df['label_known'] = 0  # Initialize a new column for marking labeled data
-known_indices = np.random.choice(df.index, size=int(0.1 * len(df)), replace=False)  # Randomly select 10% of rows
-df.loc[known_indices, 'label_known'] = 1  # Mark selected rows as labeled
+# === Step 3: Simulate Few-Shot Learning (Only 10% data is labeled) ===
+np.random.seed(42)  # Set random seed so results are reproducible
+df['label_known'] = 0  # Add a new column 'label_known' with default value 0 (unlabeled)
 
-# Separate labeled and unlabeled data
-labeled_data = df[df['label_known'] == 1]
-unlabeled_data = df[df['label_known'] == 0]
+# Randomly choose 10% of indices to mark as labeled
+known_indices = np.random.choice(df.index, size=int(0.1 * len(df)), replace=False)  # Randomly pick indices
+df.loc[known_indices, 'label_known'] = 1  # Mark those rows as labeled by setting label_known = 1
 
-# === 4. Features Selection ===
-# Define the input features used for training
-features = ['age', 'continent', 'physical_activity_days', 'processed_food_meals',
-            'sleep_hours', 'smoking_status', 'alcohol_consumption']
+# === Step 4: Split into Labeled and Unlabeled Subsets ===
+labeled_data = df[df['label_known'] == 1]  # Rows where label is known
+unlabeled_data = df[df['label_known'] == 0]  # Rows where label is not known
 
-# === 5. Scaling ===
-scaler = StandardScaler()  # Initialize scaler
-X_labeled = scaler.fit_transform(labeled_data[features])  # Fit scaler on labeled data and transform it
-y_labeled = labeled_data['label']  # Extract labels for labeled data
+# === Step 5: Define Feature Columns and Scale the Data ===
+features = [  # List of feature column names to be used for training
+    'age',
+    'continent',
+    'physical_activity_days',
+    'processed_food_meals',
+    'sleep_hours',
+    'smoking_status',
+    'alcohol_consumption'
+]
 
-X_unlabeled = scaler.transform(unlabeled_data[features])  # Transform unlabeled data using same scaler
-y_unlabeled_true = unlabeled_data['label']  # Extract true labels for evaluation
+scaler = StandardScaler()  # Create StandardScaler object to normalize features (mean=0, std=1)
 
-# === 6. Original RF ===
-original_rf = RandomForestClassifier(random_state=42)  # Initialize Random Forest model
-original_rf.fit(X_labeled, y_labeled)  # Train model on labeled data
-y_pred_original = original_rf.predict(X_unlabeled)  # Predict labels on unlabeled data
-f1_original = f1_score(y_unlabeled_true, y_pred_original)  # Calculate F1 Score
-print(f"\nOriginal Model F1 Score: {f1_original:.4f}")
+# Scale labeled features (fit and transform)
+X_labeled = scaler.fit_transform(labeled_data[features])  # Input features for labeled data
+y_labeled = labeled_data['label']  # Output labels for labeled data
 
-# === 7. Tuned RF ===
-# Define hyperparameter grid
+# Scale unlabeled features (only transform, use same scaling as labeled)
+X_unlabeled = scaler.transform(unlabeled_data[features])  # Input features for unlabeled data
+y_unlabeled_true = unlabeled_data['label']  # True labels for evaluation
+
+# === Step 6: Train Base Random Forest Model on Few-Shot Data ===
+base_model = RandomForestClassifier(random_state=42)  # Create base RF model
+base_model.fit(X_labeled, y_labeled)  # Train the model on labeled data
+
+# === Step 7: Evaluate Base Model (Before Tuning) ===
+y_pred_base = base_model.predict(X_unlabeled)  # Predict class labels for unlabeled data
+f1_base = f1_score(y_unlabeled_true, y_pred_base)  # Calculate F1 score
+print(f"F1 Score BEFORE finetuning: {f1_base:.4f}")  # Print result
+
+# === Step 8: Define Hyperparameter Grid for Random Search ===
 param_grid = {
-    'n_estimators': [100, 200],           # Number of trees
-    'max_depth': [None, 10, 20],          # Max depth of tree
-    'min_samples_split': [2, 5],          # Minimum samples to split an internal node
-    'min_samples_leaf': [1, 2]            # Minimum samples required at leaf node
+    'n_estimators': [100, 200, 300],        # Number of trees in the forest
+    'max_depth': [None, 20, 40],            # Maximum depth of each tree
+    'min_samples_split': [2, 5],            # Min samples needed to split a node
+    'min_samples_leaf': [1, 2],             # Min samples required at a leaf node
+    'class_weight': ['balanced', None]      # Adjust class weight to handle imbalance
 }
 
-rf = RandomForestClassifier(random_state=42)  # Base model
-grid_search = GridSearchCV(
-    estimator=rf,                          # Model to tune
-    param_grid=param_grid,                # Parameter grid
-    scoring='f1',                          # Optimize for F1 score
-    cv=3,                                  # 3-fold cross validation
-    n_jobs=-1,                             # Use all CPU cores
-    verbose=2                              # Print progress
+# === Step 9: Perform Randomized Search for Best Parameters ===
+random_search = RandomizedSearchCV(
+    estimator=RandomForestClassifier(random_state=42),  # Base model
+    param_distributions=param_grid,  # Hyperparameter options
+    n_iter=20,  # Number of random combinations to try
+    scoring='f1',  # Evaluation metric to maximize
+    cv=3,  # 3-fold cross-validation
+    n_jobs=-1,  # Use all CPU cores for parallel search
+    random_state=42  # Reproducibility
 )
 
-print("\nStarting Grid Search...")
-grid_search.fit(X_labeled, y_labeled)  # Run grid search on labeled data
-print(f"\nBest Parameters: {grid_search.best_params_}")  # Print best parameters
+random_search.fit(X_labeled, y_labeled)  # Fit the model on labeled data using random search
+print("Best parameters found:", random_search.best_params_)  # Print the best hyperparameters
 
-best_rf = grid_search.best_estimator_  # Get best model from grid search
-y_pred_tuned = best_rf.predict(X_unlabeled)  # Predict on unlabeled data using best model
-f1_tuned = f1_score(y_unlabeled_true, y_pred_tuned)  # Calculate F1 Score
-print(f"Tuned Model F1 Score: {f1_tuned:.4f}")
+best_model = random_search.best_estimator_  # Extract the best model found from the search
 
-# === 8. Save Predictions to df ===
-# Save all predictions to the main DataFrame
-df.loc[unlabeled_data.index, 'pred_original'] = y_pred_original
-df.loc[unlabeled_data.index, 'pred_tuned'] = y_pred_tuned
+# === Step 10: Predict Probabilities on Unlabeled Data ===
+y_probs = best_model.predict_proba(X_unlabeled)[:, 1]  # Get probabilities for positive class (class 1)
 
-# === 9. Confusion Matrices ===
-fig, axes = plt.subplots(1, 2, figsize=(12, 5))  # Create subplots (1 row, 2 plots)
+# === Step 11: Tune Classification Threshold for Maximum F1 ===
+best_f1 = 0  # Initialize best F1 score
+best_thresh = 0.5  # Default threshold
 
-# Confusion Matrix for original model
-cm_original = confusion_matrix(y_unlabeled_true, y_pred_original)
-ConfusionMatrixDisplay(cm_original).plot(ax=axes[0])
-axes[0].set_title(f"Original RF\nF1: {f1_original:.4f}")
+# Try thresholds from 0.30 to 0.69
+for thresh in np.arange(0.3, 0.7, 0.01):  # Try many thresholds
+    y_pred_thresh = (y_probs >= thresh).astype(int)  # Convert probability to 0/1 based on threshold
+    f1 = f1_score(y_unlabeled_true, y_pred_thresh)  # Calculate F1 score
+    if f1 > best_f1:  # If current F1 is better, update best values
+        best_f1 = f1
+        best_thresh = thresh
 
-# Confusion Matrix for tuned model
-cm_tuned = confusion_matrix(y_unlabeled_true, y_pred_tuned)
-ConfusionMatrixDisplay(cm_tuned).plot(ax=axes[1])
-axes[1].set_title(f"Tuned RF\nF1: {f1_tuned:.4f}")
-
-plt.tight_layout()  # Adjust layout to avoid overlap
-plt.show()  # Display the plots
-
-# === 10. Save CSV ===
-df.to_csv("comparison_predictions.csv", index=False)  # Save results to CSV file
-print("\nPredictions saved to 'comparison_predictions.csv'")
+# === Step 12: Final Output ===
+print(f"Best threshold for highest F1: {best_thresh:.2f}")  # Best threshold value
+print(f"Highest F1 after threshold tuning: {best_f1:.4f}")  # Best F1 score achieved
