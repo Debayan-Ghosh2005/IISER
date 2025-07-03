@@ -46,7 +46,7 @@ D:.
     ├── rl_agent.py                        # First RL model (Q-Learning/Policy Gradient)
     ├── env_setup.py                       # Environment loading and preprocessing
     └── README.md                          # RL-specific instructions
-
+```
 ---
 
 ## 💡 Features
@@ -86,7 +86,7 @@ We're beginning the next phase with **Reinforcement Learning**, aimed to include
 ## 🚀 How to Run
 
 1. **Install required packages**  
-```bash
+
 pip install pandas numpy scikit-learn
 ---
 
