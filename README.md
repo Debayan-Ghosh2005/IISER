@@ -1,10 +1,3 @@
-# TRSure! Below is the **complete `README.md` content** you can copy and save as `README.md` in your project folder.
-
----
-
-### ✅ `README.md` File Content:
-
-```markdown
 <h1 align="center">🧠 Machine Learning Fine-Tuning & Reinforcement Learning Project</h1>
 
 <div align="center">
@@ -30,27 +23,29 @@ The goal is to simulate real-world scenarios where labeled data is limited and e
 
 ## 📂 Project Structure
 
-```
-
+```bash
 D:.
-│   README.md
-│
-├───Classification
-│   ├── F1.py                  # F1 score evaluator for predictions
-│   ├── finetune.py           # Fully fine-tuned model
-│   ├── IMDB.csv              # Original IMDB dataset (full version)
-│   └── zeroandfewshot.py     # Zero-shot & few-shot classification
-│
-└───Fine tune
-├── comparison\_predictions.csv  # Logs predictions for analysis
-├── data.csv                    # Processed dataset (1000 rows)
-├── data1.csv                   # Additional or backup dataset
-├── F1.py                       # Threshold-tuned F1 scoring
-├── finetune.py                # RandomizedSearchCV-based tuning
-├── kshort.py                  # K-shot learning logic
-└── oneshot.py                 # One-shot learning implementation
+├── README.md                              # Main project README
 
-```
+├── Classification/
+│   ├── F1.py                              # F1 score evaluator for predictions
+│   ├── finetune.py                        # Fully fine-tuned model
+│   ├── IMDB.csv                           # Original IMDB dataset (full version)
+│   └── zeroandfewshot.py                  # Zero-shot & few-shot classification
+
+├── Fine tune/
+│   ├── comparison_predictions.csv         # Logs predictions for analysis
+│   ├── data.csv                           # Processed dataset (1000 rows)
+│   ├── data1.csv                          # Additional or backup dataset
+│   ├── F1.py                              # Threshold-tuned F1 scoring
+│   ├── finetune.py                        # RandomizedSearchCV-based tuning
+│   ├── kshort.py                          # K-shot learning logic
+│   └── oneshot.py                         # One-shot learning implementation
+
+└── Reinforcement_Learning/
+    ├── rl_agent.py                        # First RL model (Q-Learning/Policy Gradient)
+    ├── env_setup.py                       # Environment loading and preprocessing
+    └── README.md                          # RL-specific instructions
 
 ---
 
@@ -68,20 +63,10 @@ D:.
 
 We're beginning the next phase with **Reinforcement Learning**, aimed to include:
 
-- 🧠 Basic agent-environment interaction
-- 🕹️ Simple OpenAI Gym environments (e.g., CartPole, FrozenLake)
-- 📊 Comparing supervised vs. RL-based decision making
+- 🧠 Basic agent-environment interaction  
+- 🕹️ Simple OpenAI Gym environments (e.g., CartPole, FrozenLake)  
+- 📊 Comparing supervised vs. RL-based decision making  
 - 🔄 Future script additions: `rl_agent.py`, `env_setup.py`
-
-Future folder:
-```
-
-└───Reinforcement\_Learning
-├── rl\_agent.py           # First RL model (Q-Learning/Policy Gradient)
-├── env\_setup.py          # Environment loading and preprocessing
-└── README.md             # RL-specific instructions
-
-````
 
 ---
 
@@ -103,53 +88,18 @@ Future folder:
 1. **Install required packages**  
 ```bash
 pip install pandas numpy scikit-learn
-````
-
-*(Add `gym` and `matplotlib` later for RL)*
-
-2. **Run classification scripts**
-
-```bash
-# Inside Classification/
-python F1.py
-python finetune.py
-python zeroandfewshot.py
-
-# Inside Fine tune/
-python F1.py
-python finetune.py
-python kshort.py
-python oneshot.py
-```
-
----
-
-## 📊 Dataset Info
-
-* `IMDB.csv`: Full IMDB dataset (positive/negative labels)
-* `data.csv`: Cleaned 1000-row version, binary-encoded
-* `data1.csv`: Additional sample input
-* **Format**: CSV, with `text` and `label` columns
-
 ---
 
 ## 👨‍💻 Author
 
-**Debayan Ghosh**
-🎓 B.Tech in Computer Science (AI/ML) @ MCKV Institute of Engineering
-📚 Online BSc Data Science @ IIT Madras
-🌐 [GitHub](https://github.com/your-github) • [LinkedIn](https://linkedin.com/in/your-linkedin)
+**Debayan Ghosh**  
+🎓 B.Tech in Computer Science (AI/ML) @ MCKV Institute of Engineering  
+📚 Online BSc Data Science @ IIT Madras  
+🌐 [GitHub](https://github.com/Debayan-Ghosh2005) • [LinkedIn](https://www.linkedin.com/in/myself-debayan-ghosh/)
 
 ---
 
 ## 📜 License
 
-This project is for **educational and research purposes only**.
+This project is for **educational and research purposes only**.  
 Feel free to fork or adapt the scripts for learning.
-
-```
-
----
-
-Let me know if you'd like a version with [GitHub-style badges added](f) or an [RL-specific README.md](f) to go inside the `Reinforcement_Learning/` folder.
-```
